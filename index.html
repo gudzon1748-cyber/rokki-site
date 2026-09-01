@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rokki — футбольна аналітика: розбори матчів і прогнози</title>
+<meta name="description" content="Розбори футбольних матчів АПЛ, Ла Ліги, Бундесліги та Серії А за xG, формою і складами. Відкритий журнал прогнозів.">
+<meta property="og:title" content="Rokki — футбольна аналітика">
+<meta property="og:description" content="Розбори матчів за цифрами. Відкритий журнал прогнозів.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1C2B3F; --navy2:#162434; --panel:#22344B; --panel2:#1A2839;
+  --line:#2E4258; --text:#EAF1F8; --muted:#93A8BE;
+  --green:#3ADE5C; --green2:#1FA845; --red:#FF5F5F; --amber:#F5B93D;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  --cond:'Barlow Condensed',var(--font);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--navy);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+h1,h2,h3,h4{margin:0;line-height:1.1}
+p{margin:0 0 14px}
+a{color:inherit;text-decoration:none}
+
+/* ---------- placeholders ---------- */
+.ph{border:2px dashed #4A6280;border-radius:6px;
+  background:repeating-linear-gradient(45deg,#1E2E42,#1E2E42 10px,#233650 10px,#233650 20px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  gap:2px;padding:10px;color:#8FA6BE;overflow:hidden}
+.ph-l{font-size:9px;font-weight:700;letter-spacing:.12em;color:#6F87A2;text-transform:uppercase}
+.ph-s{font-size:15px;font-weight:800;color:#A9BFD5;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ph-r{font-size:11px;color:#7C93AB}
+.ph-h{font-size:10px;color:#61798F;margin-top:2px;line-height:1.35}
+.ph.sm .ph-s{font-size:11px} .ph.sm .ph-r{font-size:9px} .ph.sm{padding:4px}
+
+/* ---------- header ---------- */
+.top{background:var(--navy2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:60}
+.top-in{display:flex;align-items:center;gap:26px;height:56px}
+.logo{font-family:var(--cond);font-size:26px;font-weight:700;letter-spacing:.06em}
+.logo span{color:var(--green)}
+.menu{display:flex;gap:4px;margin-left:8px}
+.menu a{font-family:var(--cond);font-size:15px;letter-spacing:.06em;text-transform:uppercase;
+  color:#B8C9DA;padding:8px 12px;border-radius:4px;display:flex;align-items:center;gap:7px;transition:.15s}
+.menu a:hover,.menu a.on{color:#fff;background:#22344B}
+.menu i{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;opacity:.35}
+.menu a:hover i,.menu a.on i{opacity:1}
+.top-cta{margin-left:auto;display:flex;align-items:center;gap:10px}
+.lang{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.lang button{background:none;border:0;color:var(--muted);font:700 11px var(--font);padding:7px 9px;cursor:pointer}
+.lang button.on{background:var(--panel);color:#fff}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-block;background:linear-gradient(180deg,var(--green),var(--green2));color:#07240F;
+  font-weight:800;font-size:14px;padding:12px 26px;border-radius:5px;border:0;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.04em;font-family:var(--cond);letter-spacing:.08em;font-size:17px;
+  box-shadow:0 6px 18px rgba(58,222,92,.22);transition:.15s}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-sm{padding:8px 16px;font-size:14px;box-shadow:none}
+.btn-o{background:none;border:1px solid var(--green);color:var(--green);box-shadow:none}
+.btn-o:hover{background:rgba(58,222,92,.1)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;background:linear-gradient(180deg,#132033,#1B2B40);border-bottom:1px solid var(--line);
+  padding:26px 0 34px;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(700px 320px at 50% 40%,rgba(58,222,92,.16),transparent 70%)}
+.hero-in{position:relative;display:grid;grid-template-columns:230px 1fr 230px;gap:20px;align-items:center;min-height:390px}
+.hero-ph{height:360px}
+.hero-img{width:100%;max-width:230px;height:auto;display:block;
+  filter:drop-shadow(0 0 26px rgba(58,222,92,.28)) drop-shadow(0 0 60px rgba(0,180,255,.16))}
+.hero-img.flip{transform:scaleX(-1);margin-left:auto}
+.hero-mid{text-align:center}
+.hero-kicker{font-family:var(--cond);font-size:14px;letter-spacing:.28em;color:var(--green);text-transform:uppercase;margin-bottom:6px}
+.hero-title{font-family:var(--cond);font-size:clamp(44px,7vw,78px);font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+.hero-title b{color:var(--green);font-weight:700}
+.hero-sub{font-family:var(--cond);font-size:clamp(15px,2vw,20px);letter-spacing:.16em;color:#C4D5E6;text-transform:uppercase;margin:6px 0 22px}
+.hero-sub em{color:var(--green);font-style:normal}
+
+/* match card */
+.mcard{background:rgba(11,19,30,.72);border:1px solid var(--line);border-radius:8px;
+  max-width:520px;margin:0 auto;padding:0 0 16px;backdrop-filter:blur(4px)}
+.mcard-top{display:flex;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted);letter-spacing:.1em}
+.mcard-top div{flex:1;padding:8px;text-transform:uppercase}
+.mcard-top div+div{border-left:1px solid var(--line)}
+.mcard-teams{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px 12px 12px}
+.team{display:flex;align-items:center;gap:10px;font-family:var(--cond);font-size:19px;letter-spacing:.06em;text-transform:uppercase}
+.vs{color:var(--muted);font-size:12px;font-weight:700}
+.odds{display:flex;gap:8px;justify-content:center;padding:0 12px}
+.odds span{flex:0 0 96px;background:linear-gradient(180deg,var(--green),var(--green2));color:#07240F;
+  font-weight:800;padding:8px 0;border-radius:4px;font-size:14px}
+.odds small{display:block;font-size:9px;font-weight:700;opacity:.72;letter-spacing:.06em}
+
+/* ---------- stat tiles (bonus-row style) ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0 14px}
+.tile{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line);
+  background:linear-gradient(180deg,#22344B,#1A2839);padding:22px 18px;text-align:center}
+.tile::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--line)}
+.tile b{font-family:var(--cond);display:block;font-size:46px;font-weight:700;line-height:1;color:var(--green)}
+.tile span{display:block;font-family:var(--cond);font-size:17px;letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+.tile i{display:block;font-style:normal;font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4}
+.t-ok::after{background:var(--green)}
+.t-part b{color:var(--amber)} .t-part::after{background:var(--amber)}
+.t-miss b{color:var(--red)} .t-miss::after{background:var(--red)}
+.tile.t-all b{color:#fff}
+
+/* wide banner */
+.banner{display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:space-between;
+  background:linear-gradient(90deg,#22344B,#1A2839);border:1px solid var(--line);border-radius:8px;
+  padding:22px 26px;margin-bottom:34px}
+.banner h3{font-family:var(--cond);font-size:30px;color:var(--green);letter-spacing:.06em;text-transform:uppercase}
+.banner p{margin:0;color:#C4D5E6;font-family:var(--cond);font-size:19px;letter-spacing:.06em;text-transform:uppercase;max-width:420px}
+
+/* ---------- green band ---------- */
+.band{background:linear-gradient(180deg,#2FBF54,#1E8C3D);padding:44px 0;text-align:center;position:relative;overflow:hidden}
+.band::before{content:'';position:absolute;inset:0;background:radial-gradient(600px 240px at 50% 0,rgba(255,255,255,.16),transparent 70%)}
+.band-in{position:relative}
+.band h2{font-family:var(--cond);font-size:clamp(28px,4vw,40px);letter-spacing:.06em;text-transform:uppercase}
+.band p{max-width:640px;margin:10px auto 24px;color:#E7FBEC;font-size:14px}
+.leagues{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.leagues .ph{width:74px;height:74px;border-color:rgba(255,255,255,.5);
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.1),rgba(255,255,255,.1) 8px,rgba(255,255,255,.16) 8px,rgba(255,255,255,.16) 16px);
+  color:#EAFBEF}
+.leagues .ph-s{color:#fff;font-size:10px} .leagues .ph-r{color:#DFF7E6;font-size:8px}
+.band .btn{background:#0F2A19;color:#fff;box-shadow:none}
+.band .btn:hover{background:#0a1f12}
+
+/* ---------- sections ---------- */
+.sec{padding:56px 0}
+.sec-d{background:var(--navy2)}
+.sec h2.h{font-family:var(--cond);font-size:clamp(26px,3.6vw,38px);text-transform:uppercase;letter-spacing:.05em;text-align:center}
+.sec .lead{text-align:center;color:var(--muted);max-width:680px;margin:10px auto 34px;font-size:14px}
+
+/* services circles */
+.circles{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.circ-ph{width:190px;height:190px;border-radius:50%;margin:0 auto 16px;border-width:3px}
+.circ-wrap{position:relative}
+.circ-wrap::after{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  width:202px;height:202px;border-radius:50%;border:2px solid var(--green);opacity:.55;pointer-events:none}
+.circles h3{font-family:var(--cond);font-size:20px;letter-spacing:.09em;text-transform:uppercase;color:var(--green)}
+.circles p{font-size:13px;color:var(--muted);margin:8px 0 0}
+.circles .price{color:var(--text);font-weight:700;font-size:13px;margin-top:8px}
+
+/* thumbs strip */
+.strip{background:#0E1826;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;gap:10px;overflow-x:auto;padding-left:14px;padding-right:14px}
+.strip .ph{flex:0 0 150px;height:86px}
+
+/* journal table */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:660px}
+th{font-family:var(--cond);text-align:left;padding:12px 14px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid #24374E}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#22344B}
+td:nth-child(1),td:nth-child(5){font-variant-numeric:tabular-nums;color:var(--muted)}
+td:nth-child(3){font-weight:600} td:nth-child(5){color:var(--text);font-weight:700}
+td:last-child{text-align:right}
+.mk.ok{color:var(--green)} .mk.part{color:var(--amber)} .mk.miss{color:var(--red)}
+.tfoot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
+.legend{font-size:12.5px;color:var(--muted);margin:0}
+.legend em{font-style:normal;margin-right:14px}
+.note{color:var(--muted);font-size:13.5px;max-width:760px;margin:0 auto 26px;text-align:center}
+
+/* cases */
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.case{background:var(--panel2);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:8px;overflow:hidden}
+.case .ph{height:150px;border-radius:0;border-left:0;border-right:0;border-top:0}
+.case-b{padding:18px}
+.case h3{font-family:var(--cond);font-size:20px;letter-spacing:.04em}
+.case .meta{font-size:11.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:4px 0 12px}
+.case p{font-size:13px;color:var(--muted)}
+.case .res{font-weight:700;font-size:13.5px;color:var(--text);margin:0}
+.c-ok{border-top-color:var(--green)} .c-part{border-top-color:var(--amber)} .c-miss{border-top-color:var(--red)}
+.why{background:#162434;border-radius:6px;padding:13px;font-size:12.5px;color:var(--muted);margin:12px 0 0}
+.why b{color:var(--text)}
+
+/* features */
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;text-align:center}
+.fcirc{width:104px;height:104px;border-radius:50%;border:2px solid var(--green);margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;background:rgba(58,222,92,.05)}
+.fcirc .ph{width:100%;height:100%;border-radius:50%}
+.feats h3{font-family:var(--cond);font-size:18px;letter-spacing:.09em;text-transform:uppercase}
+.feats p{font-size:12.5px;color:var(--muted);margin-top:8px}
+.feats a{color:var(--green)}
+
+/* sources row */
+.sources{background:#0E1826;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sources-in{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.sources .ph{width:128px;height:38px}
+
+/* contact */
+.cta{background:linear-gradient(180deg,#1B2B40,#162434);text-align:center;padding:60px 0}
+.cta h2{font-family:var(--cond);font-size:clamp(28px,4vw,42px);text-transform:uppercase;letter-spacing:.05em}
+.cta p{color:var(--muted);max-width:560px;margin:12px auto 26px}
+.cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+/* footer */
+.foot{background:#101B29;padding:40px 0 26px;border-top:1px solid var(--line);font-size:13px}
+.fgrid{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:28px;margin-bottom:26px}
+.foot h4{font-family:var(--cond);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
+.foot ul{list-style:none;padding:0;margin:0}
+.foot li{margin-bottom:7px;color:var(--muted)}
+.foot li a:hover{color:#fff}
+.social{display:flex;gap:8px;margin-top:12px}
+.social .ph{width:36px;height:36px;border-radius:6px}
+.disc{border-top:1px solid var(--line);padding-top:18px;color:#61798F;font-size:11.5px;line-height:1.65;margin:0}
+.copy{color:#4E6479;font-size:11.5px;margin-top:12px;text-align:center}
+
+@media(max-width:1000px){
+  .menu{display:none}
+  .hero-in{grid-template-columns:1fr}
+  .hero-ph{height:200px;max-width:280px;margin:0 auto}
+  .hero-img{max-width:150px;margin:0 auto}
+  .hero-img.flip{display:none}
+  .tiles{grid-template-columns:1fr 1fr}
+  .circles,.cases,.feats{grid-template-columns:1fr 1fr}
+  .fgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .tiles,.circles,.cases,.feats,.fgrid{grid-template-columns:1fr}
+  .odds span{flex:1}
+  .banner{text-align:center;justify-content:center}
+  .btn{width:100%}
+  .btn-sm,.top-cta .btn{width:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="top">
+  <div class="wrap top-in">
+    <a href="#top" class="logo">ROKKI<span>.</span></a>
+    <nav class="menu">
+      <a href="#top" class="on"><i></i>Головна</a>
+      <a href="#journal"><i></i>Журнал</a>
+      <a href="#services"><i></i>Послуги</a>
+      <a href="#cases"><i></i>Розбори</a>
+      <a href="#about"><i></i>Про мене</a>
+      <a href="#contact"><i></i>Контакти</a>
+    </nav>
+    <div class="top-cta">
+      <div class="lang"><button class="on">UA</button><button>EN</button></div>
+      <a class="btn btn-sm" href="#" data-tg>Telegram</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section id="top" class="hero">
+  <div class="wrap hero-in">
+
+    <img class="hero-img" src="hero.webp" width="420" height="720" alt="Футболіст із мʼячем" loading="eager">
+
+    <div class="hero-mid">
+      <p class="hero-kicker">Футбольна аналітика</p>
+      <h1 class="hero-title">РОЗБІР<b>ТУРУ</b></h1>
+      <p class="hero-sub">за <em>цифрами</em>, а не за <em>відчуттями</em></p>
+
+      <div class="mcard">
+        <div class="mcard-top">
+          <div>Найближчий розбір</div>
+          <div>Субота · 21:00</div>
+        </div>
+        <div class="mcard-teams">
+          <span class="team">
+            <span class="ph sm" style="width:44px;height:44px;border-radius:50%">
+              <span class="ph-s">64</span><span class="ph-r">1:1</span>
+            </span>
+            Команда A
+          </span>
+          <span class="vs">VS</span>
+          <span class="team">
+            Команда Б
+            <span class="ph sm" style="width:44px;height:44px;border-radius:50%">
+              <span class="ph-s">64</span><span class="ph-r">1:1</span>
+            </span>
+          </span>
+        </div>
+        <div class="odds">
+          <span>П1<small>ПРОГНОЗ</small></span>
+          <span>2.5<small>ТОТАЛ</small></span>
+          <span>ТАК<small>ОБИДВІ ЗАБ'ЮТЬ</small></span>
+        </div>
+      </div>
+    </div>
+
+    <img class="hero-img flip" src="hero.webp" width="420" height="720" alt="" aria-hidden="true" loading="eager">
+
+  </div>
+</section>
+
+<!-- ============ STAT TILES ============ -->
+<section class="wrap">
+  <div class="tiles">
+    <div class="tile t-all"><b id="c-all">28</b><span>Прогнозів</span><i>у відкритому журналі</i></div>
+    <div class="tile t-ok"><b id="c-ok">13</b><span>Влучань</span><i>переможець і додаткові ринки</i></div>
+    <div class="tile t-part"><b id="c-part">10</b><span>Часткових</span><i>зайшла частина ринків</i></div>
+    <div class="tile t-miss"><b id="c-miss">5</b><span>Промахів</span><i>не зайшов жоден ринок</i></div>
+  </div>
+
+  <div class="banner">
+    <h3>Увесь журнал прогнозів</h3>
+    <p>Кожен розбір записаний до матчу. Промахи не видаляю</p>
+    <a class="btn" href="#journal">Дивитись журнал</a>
+  </div>
+</section>
+
+<!-- ============ GREEN BAND ============ -->
+<section class="band">
+  <div class="wrap band-in">
+    <h2>П'ять ліг у постійній роботі</h2>
+    <p>АПЛ, Ла Ліга, Бундесліга, Бундесліга-2 і Серія А. Розбираю кожен ігровий день: xG, форма, склади, травми, календар і історія очних зустрічей.</p>
+    <div class="leagues">
+      <div class="ph"><span class="ph-s">80×80</span><span class="ph-r">1:1 SVG</span></div>
+      <div class="ph"><span class="ph-s">80×80</span><span class="ph-r">1:1 SVG</span></div>
+      <div class="ph"><span class="ph-s">80×80</span><span class="ph-r">1:1 SVG</span></div>
+      <div class="ph"><span class="ph-s">80×80</span><span class="ph-r">1:1 SVG</span></div>
+      <div class="ph"><span class="ph-s">80×80</span><span class="ph-r">1:1 SVG</span></div>
+    </div>
+    <a class="btn" href="#services">Замовити розбір</a>
+  </div>
+</section>
+
+<!-- ============ SERVICES ============ -->
+<section id="services" class="sec">
+  <div class="wrap">
+    <h2 class="h">Що я роблю</h2>
+    <p class="lead">Чотири формати роботи. Пишеш у Telegram — обговорюємо деталі й терміни.</p>
+    <div class="circles">
+
+      <div class="circ-wrap">
+        <div class="ph circ-ph">
+          <span class="ph-l">Фото 1</span><span class="ph-s">400 × 400</span>
+          <span class="ph-r">1:1 квадрат</span><span class="ph-h">Обріжеться в коло</span>
+        </div>
+        <h3>Розбір матчу</h3>
+        <p>Форма за 5 турів, xG, склади й втрати, очні зустрічі, календар. Висновок із поясненням логіки.</p>
+        <p class="price">За 24 години до матчу</p>
+      </div>
+
+      <div class="circ-wrap">
+        <div class="ph circ-ph">
+          <span class="ph-l">Фото 2</span><span class="ph-s">400 × 400</span>
+          <span class="ph-r">1:1 квадрат</span><span class="ph-h">Обріжеться в коло</span>
+        </div>
+        <h3>Підписка</h3>
+        <p>Розбори ігрового дня в закритому каналі. Плюс підсумок тижня: що зайшло, що ні й чому.</p>
+        <p class="price">Щоігрового дня</p>
+      </div>
+
+      <div class="circ-wrap">
+        <div class="ph circ-ph">
+          <span class="ph-l">Фото 3</span><span class="ph-s">400 × 400</span>
+          <span class="ph-r">1:1 квадрат</span><span class="ph-h">Обріжеться в коло</span>
+        </div>
+        <h3>Тексти для медіа</h3>
+        <p>Превʼю матчів, аналітичні колонки, пост-матчеві розбори. Під ваш формат і обсяг.</p>
+        <p class="price">Від 2000 знаків</p>
+      </div>
+
+      <div class="circ-wrap">
+        <div class="ph circ-ph">
+          <span class="ph-l">Фото 4</span><span class="ph-s">400 × 400</span>
+          <span class="ph-r">1:1 квадрат</span><span class="ph-h">Обріжеться в коло</span>
+        </div>
+        <h3>Консультація</h3>
+        <p>Розбір вашого підходу до аналізу: на що дивитись, які дані брати, як вести власну статистику.</p>
+        <p class="price">Онлайн, 60 хвилин</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ THUMBS STRIP ============ -->
+<div class="strip">
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+  <div class="ph"><span class="ph-s">320×180</span><span class="ph-r">16:9</span></div>
+</div>
+
+<!-- ============ JOURNAL ============ -->
+<section id="journal" class="sec sec-d">
+  <div class="wrap">
+    <h2 class="h">Журнал прогнозів</h2>
+    <p class="lead">Кожен прогноз записаний до початку матчу, результат — після. Оновлюється щоігрового дня.</p>
+    <p class="note">У 23 прогнозах із 28 зайшов принаймні один ринок. Вибірка ще невелика — чесний відсоток буде видно ближче до 100 матчів, і я оновлюватиму цю цифру публічно.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Дата</th><th>Ліга</th><th>Матч</th><th>Прогноз</th><th>Рахунок</th><th></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="tfoot">
+      <button id="more" class="btn btn-o btn-sm">Показати всі</button>
+      <p class="legend"><span class="mk ok">✔</span> <em>влучив</em> <span class="mk part">◐</span> <em>частково</em> <span class="mk miss">✖</span> <em>промах</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CASES ============ -->
+<section id="cases" class="sec">
+  <div class="wrap">
+    <h2 class="h">Як виглядає мій розбір</h2>
+    <p class="lead">Три реальні кейси з журналу — логіка, яка була до матчу, і результат після. Включно з промахом.</p>
+    <div class="cases">
+
+      <article class="case c-ok">
+        <div class="ph"><span class="ph-l">Обкладинка 1</span><span class="ph-s">640 × 360</span><span class="ph-r">16:9</span></div>
+        <div class="case-b">
+          <h3>Карлсруе — Вольфсбург</h3>
+          <p class="meta">Бундесліга-2 · 29.08.2026</p>
+          <p><b>Прогноз:</b> перемога Вольфсбурга</p>
+          <p><i>Логіка розбору — Руслан, додай 3–4 речення своїми словами.</i></p>
+          <p class="res">Результат: 2:4 — зайшов <span class="mk ok">✔</span></p>
+        </div>
+      </article>
+
+      <article class="case c-part">
+        <div class="ph"><span class="ph-l">Обкладинка 2</span><span class="ph-s">640 × 360</span><span class="ph-r">16:9</span></div>
+        <div class="case-b">
+          <h3>Атлетіко — Вільярреал</h3>
+          <p class="meta">Ла Ліга · 23.08.2026</p>
+          <p><b>Прогноз:</b> П1 (50.9%), обидві заб'ють (56%)</p>
+          <p><i>Логіка розбору — місце для твого тексту.</i></p>
+          <p class="res">Результат: 2:2 — частково <span class="mk part">◐</span></p>
+        </div>
+      </article>
+
+      <article class="case c-miss">
+        <div class="ph"><span class="ph-l">Обкладинка 3</span><span class="ph-s">640 × 360</span><span class="ph-r">16:9</span></div>
+        <div class="case-b">
+          <h3>Ноттінгем Форест — Лідс</h3>
+          <p class="meta">АПЛ · 22.08.2026</p>
+          <p><b>Прогноз:</b> П1 (38.5%), менше 2.5</p>
+          <p class="res">Результат: 0:1 — промах <span class="mk miss">✖</span></p>
+          <p class="why"><b>Чому показую промах:</b> аналітика — це ймовірності, а не пророцтва. Прогноз вагою 38.5% не зайде приблизно в 6 випадках із 10. Хто показує лише виграшні скріншоти — показує рекламу, а не статистику.</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES / ABOUT ============ -->
+<section id="about" class="sec sec-d">
+  <div class="wrap">
+    <h2 class="h">Як я працюю</h2>
+    <p class="lead">Кожен розбір проходить через ті самі чотири фільтри — без винятків і без «відчуттів».</p>
+    <div class="feats">
+
+      <div>
+        <div class="fcirc"><div class="ph" style="border:0;background:none"><span class="ph-s">56×56</span><span class="ph-r">SVG</span></div></div>
+        <h3>xG і реальна форма</h3>
+        <p>Дивлюсь на якість моментів, а не на рахунки: команда може виграти 2:0 і при цьому грати гірше.</p>
+      </div>
+
+      <div>
+        <div class="fcirc"><div class="ph" style="border:0;background:none"><span class="ph-s">56×56</span><span class="ph-r">SVG</span></div></div>
+        <h3>Склади й травми</h3>
+        <p>Один відсутній опорник змінює матч сильніше за «мотивацію». Перевіряю заявки до свистка.</p>
+      </div>
+
+      <div>
+        <div class="fcirc"><div class="ph" style="border:0;background:none"><span class="ph-s">56×56</span><span class="ph-r">SVG</span></div></div>
+        <h3>Контекст календаря</h3>
+        <p>Єврокубок серед тижня, третій виїзд поспіль, гра після збірних — це реальні мінус-очки.</p>
+      </div>
+
+      <div>
+        <div class="fcirc"><div class="ph" style="border:0;background:none"><span class="ph-s">56×56</span><span class="ph-r">SVG</span></div></div>
+        <h3>Чесна статистика</h3>
+        <p>Публічний <a href="#journal">журнал прогнозів</a>: прогноз до матчу, результат після. Промахи не видаляю.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<div class="sources">
+  <div class="wrap sources-in">
+    <div class="ph"><span class="ph-s">240×72</span><span class="ph-r">Лого ліги / джерела</span></div>
+    <div class="ph"><span class="ph-s">240×72</span><span class="ph-r">Лого</span></div>
+    <div class="ph"><span class="ph-s">240×72</span><span class="ph-r">Лого</span></div>
+    <div class="ph"><span class="ph-s">240×72</span><span class="ph-r">Лого</span></div>
+    <div class="ph"><span class="ph-s">240×72</span><span class="ph-r">Лого</span></div>
+    <div class="ph"><span class="ph-s">240×72</span><span class="ph-r">Лого</span></div>
+  </div>
+</div>
+
+<!-- ============ CONTACT ============ -->
+<section id="contact" class="cta">
+  <div class="wrap">
+    <h2>Готовий розібрати ваш матч</h2>
+    <p>Напишіть у Telegram — відповім протягом дня. Для медіа й співпраці зручніше поштою.</p>
+    <div class="cta-row">
+      <a class="btn" href="#" data-tg>Написати в Telegram</a>
+      <a class="btn btn-o" href="#" data-mail>email@example.com</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <a href="#top" class="logo">ROKKI<span>.</span></a>
+        <p style="color:var(--muted);margin-top:10px;font-size:12.5px;max-width:280px">
+          Футбольна аналітика за цифрами: розбори матчів, відкритий журнал прогнозів, тексти для медіа.
+        </p>
+        <div class="social">
+          <div class="ph"><span class="ph-s">48</span></div>
+          <div class="ph"><span class="ph-s">48</span></div>
+          <div class="ph"><span class="ph-s">48</span></div>
+        </div>
+      </div>
+      <div>
+        <h4>Розділи</h4>
+        <ul>
+          <li><a href="#journal">Журнал прогнозів</a></li>
+          <li><a href="#services">Послуги</a></li>
+          <li><a href="#cases">Розбори</a></li>
+          <li><a href="#about">Як я працюю</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Ліги</h4>
+        <ul>
+          <li>АПЛ</li><li>Ла Ліга</li><li>Бундесліга</li><li>Бундесліга-2</li><li>Серія А</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Контакти</h4>
+        <ul>
+          <li><a href="#" data-tg>Telegram</a></li>
+          <li><a href="#" data-tt>TikTok</a></li>
+          <li><a href="#" data-mail>Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="disc">18+. Матеріали сайту — авторська аналітика й особиста думка, а не гарантія результату та не фінансова порада. Ставки повʼязані з ризиком втрати коштів. Якщо гра перестала бути розвагою — зверніться по допомогу.</p>
+    <p class="copy">© 2026 Ruslan «Rokki» Shynkarenko</p>
+  </div>
+</footer>
+
+<script>
+/* ====== НАЛАШТУВАННЯ — заміни на свої ====== */
+const CONFIG = {
+  telegram: "https://t.me/CHANGE_ME",
+  tiktok:   "https://tiktok.com/@CHANGE_ME",
+  email:    "email@example.com"
+};
+
+/* ====== ЖУРНАЛ: щоб додати прогноз — вставте рядок зверху ======
+   r: "ok" влучив · "part" частково · "miss" промах            */
+const PREDICTIONS = [
+{d:"30.08", lg:"Бундесліга",    m:"Аугсбург — Шальке",              p:"1X, обидві заб'ють",     s:"3:0", r:"part"},
+{d:"30.08", lg:"Бундесліга",    m:"Фрайбург — Вердер",              p:"П1, менше 3.5",          s:"4:1", r:"part"},
+{d:"30.08", lg:"Бундесліга-2",  m:"Санкт-Паулі — Кайзерслаутерн",   p:"П1, менше 3.5",          s:"1:2", r:"part"},
+{d:"30.08", lg:"Бундесліга-2",  m:"Магдебург — Гольштайн Кіль",     p:"1X",                     s:"2:0", r:"ok"},
+{d:"30.08", lg:"Бундесліга-2",  m:"Дармштадт — Ганновер",           p:"П2, більше 2.5",         s:"0:1", r:"part"},
+{d:"29.08", lg:"Бундесліга-2",  m:"Котбус — Фюрт",                  p:"схил до X/П2",           s:"2:4", r:"part"},
+{d:"29.08", lg:"Бундесліга-2",  m:"Карлсруе — Вольфсбург",          p:"П2",                     s:"2:4", r:"ok"},
+{d:"29.08", lg:"Бундесліга-2",  m:"Хайденхайм — Дрезден",           p:"П1",                     s:"4:2", r:"ok"},
+{d:"23.08", lg:"Серія А",       m:"Венеція — Лечче",                p:"П1, без БТТС",           s:"0:2", r:"part"},
+{d:"23.08", lg:"Ла Ліга",       m:"Хетафе — Расінг",                p:"П1, без БТТС",           s:"1:0", r:"ok"},
+{d:"23.08", lg:"Ла Ліга",       m:"Атлетіко — Вільярреал",          p:"П1, БТТС так",           s:"2:2", r:"part"},
+{d:"22.08", lg:"АПЛ",           m:"Брентфорд — Тоттенхем",          p:"П1, більше 2.5",         s:"3:0", r:"part"},
+{d:"22.08", lg:"АПЛ",           m:"Ноттінгем Форест — Лідс",        p:"П1, менше 2.5",          s:"0:1", r:"miss"},
+{d:"22.08", lg:"АПЛ",           m:"Іпсвіч — Сандерленд",            p:"схил до П2",             s:"2:1", r:"miss"},
+{d:"22.08", lg:"АПЛ",           m:"Евертон — Кристал Пелас",        p:"П1, менше 2.5",          s:"2:0", r:"part"},
+{d:"21.08", lg:"Ла Ліга",       m:"Бетіс — Реал Сосьєдад",          p:"П1, більше 2.5",         s:"1:0", r:"part"},
+{d:"21.08", lg:"АПЛ",           m:"Арсенал — Ковентрі",             p:"П1, 2:0",                s:"3:0", r:"ok"},
+{d:"17.08", lg:"Ла Ліга",       m:"Депортіво — Ельче",              p:"1X, менше 2.5",          s:"1:1", r:"ok"},
+{d:"16.08", lg:"Ла Ліга",       m:"Еспаньйол — Леванте",            p:"П1, менше 2.5",          s:"3:0", r:"ok"},
+{d:"16.08", lg:"Ла Ліга",       m:"Расінг — Вільярреал",            p:"X2, більше 1.5",         s:"2:2", r:"ok"},
+{d:"16.08", lg:"Бундесліга-2",  m:"Білефельд — Котбус",             p:"П1, 2:1",                s:"3:0", r:"ok"},
+{d:"16.08", lg:"Бундесліга-2",  m:"Дрезден — Дармштадт",            p:"П1, менше 3.5",          s:"1:0", r:"ok"},
+{d:"16.08", lg:"Бундесліга-2",  m:"Ганновер 96 — Вольфсбург",       p:"П2, БТТС, більше 2.5",   s:"0:1", r:"miss"},
+{d:"15.08", lg:"Ла Ліга",       m:"Севілья — Райо Вальєкано",       p:"1X, менше 2.5",          s:"2:1", r:"ok"},
+{d:"15.08", lg:"Ла Ліга",       m:"Алавес — Хетафе",                p:"X2, менше 2.5",          s:"3:0", r:"miss"},
+{d:"15.08", lg:"Бундесліга-2",  m:"Оснабрюк — Магдебург",           p:"X, БТТС так",            s:"0:3", r:"miss"},
+{d:"15.08", lg:"Бундесліга-2",  m:"Фюрт — Нюрнберг",                p:"П2, БТТС, 1:2",          s:"2:4", r:"ok"},
+{d:"15.08", lg:"Бундесліга-2",  m:"Хертха — Хайденхайм",            p:"П1, 2:1",                s:"4:1", r:"ok"}
+];
+
+/* посилання */
+document.querySelectorAll("[data-tg]").forEach(e => e.href = CONFIG.telegram);
+document.querySelectorAll("[data-tt]").forEach(e => e.href = CONFIG.tiktok);
+document.querySelectorAll("[data-mail]").forEach(e => {
+  e.href = "mailto:" + CONFIG.email;
+  if (e.textContent.includes("@")) e.textContent = CONFIG.email;
+});
+
+/* таблиця */
+const MARK = {ok:'<span class="mk ok">✔</span>', part:'<span class="mk part">◐</span>', miss:'<span class="mk miss">✖</span>'};
+const tb = document.getElementById("tbody");
+let open = false;
+function draw(){
+  tb.innerHTML = (open ? PREDICTIONS : PREDICTIONS.slice(0,10))
+    .map(p => `<tr><td>${p.d}</td><td>${p.lg}</td><td>${p.m}</td><td>${p.p}</td><td>${p.s}</td><td>${MARK[p.r]}</td></tr>`)
+    .join("");
+}
+document.getElementById("more").addEventListener("click", e => {
+  open = !open;
+  e.target.textContent = open ? "Згорнути" : "Показати всі";
+  draw();
+});
+
+/* лічильники — рахуються з масиву, а не вписані руками */
+const c = {ok:0, part:0, miss:0};
+PREDICTIONS.forEach(p => c[p.r]++);
+document.getElementById("c-all").textContent  = PREDICTIONS.length;
+document.getElementById("c-ok").textContent   = c.ok;
+document.getElementById("c-part").textContent = c.part;
+document.getElementById("c-miss").textContent = c.miss;
+
+draw();
+</script>
+</body>
+</html>
