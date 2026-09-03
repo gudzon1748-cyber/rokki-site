@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C2B3F">
+<meta name="robots" content="noindex, follow">
+<title>Трекер ставок — Rokki</title>
+<meta name="description" content="Особистий трекер ставок із розрахунком CLV. Дані зберігаються лише у вашому браузері.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --navy:#1C2B3F; --navy2:#162434; --panel:#22344B; --panel2:#1A2839;
+  --line:#2E4258; --text:#EAF1F8; --muted:#93A8BE;
+  --green:#3ADE5C; --green2:#1FA845; --red:#FF5F5F; --amber:#F5B93D;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  --cond:'Barlow Condensed',var(--font);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--navy);color:var(--text);font-family:var(--font);
+  font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%}
+h1,h2,h3{margin:0;line-height:1.15}
+p{margin:0 0 12px}
+a{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.app{max-width:520px;margin:0 auto;padding:0 16px calc(30px + env(safe-area-inset-bottom))}
+
+/* ---------- шапка сторінки ---------- */
+.thead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:18px 0 16px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.logo{font-family:var(--cond);font-size:24px;font-weight:700;letter-spacing:.06em}
+.logo i{color:var(--green);font-style:normal}
+.thead h1{font-family:var(--cond);font-size:18px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.back{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;
+  padding:6px 0;white-space:nowrap}
+.back:hover,.back:focus-visible{color:var(--text)}
+
+/* ---------- статистика ---------- */
+.stats{margin-bottom:22px}
+.hm{background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);border-radius:8px;padding:22px 18px 18px;text-align:center;
+  position:relative;overflow:hidden}
+.hm::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--line)}
+.hm.pos::after{background:var(--green)}
+.hm.neg::after{background:var(--red)}
+.hm-l{font-family:var(--cond);font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.hm-v{font-family:var(--cond);font-size:66px;font-weight:700;line-height:1;margin:6px 0 8px;
+  font-variant-numeric:tabular-nums;color:var(--text)}
+.hm-v.pos{color:var(--green)}
+.hm-v.neg{color:var(--red)}
+.hm-n{font-size:12.5px;color:var(--muted);margin:0;line-height:1.45}
+.hm-warn{display:block;color:var(--amber);margin-top:4px}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.tile{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:14px 12px;text-align:center}
+.tile b{font-family:var(--cond);display:block;font-size:30px;font-weight:700;line-height:1.05;
+  font-variant-numeric:tabular-nums}
+.tile b.pos{color:var(--green)} .tile b.neg{color:var(--red)}
+.tile span{display:block;font-family:var(--cond);font-size:13px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-top:5px}
+.pending{font-size:12.5px;color:var(--muted);margin:10px 0 0;text-align:center}
+
+/* ---------- порожній стан ---------- */
+.empty{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:20px 18px;margin-bottom:22px}
+.empty h2{font-family:var(--cond);font-size:22px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--green);margin-bottom:10px}
+.empty p{font-size:14px;color:var(--muted)}
+.empty p:last-child{margin-bottom:0}
+.empty b{color:var(--text)}
+
+/* ---------- картки ---------- */
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:22px}
+.h2{font-family:var(--cond);font-size:20px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------- форма ---------- */
+details.card{padding:0}
+details.card>summary{list-style:none;cursor:pointer;padding:16px 18px;
+  font-family:var(--cond);font-size:20px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:'';width:9px;height:9px;flex:0 0 9px;
+  border-right:2px solid var(--green);border-bottom:2px solid var(--green);
+  transform:rotate(45deg);margin-bottom:4px;transition:.15s}
+details.card[open]>summary::after{transform:rotate(-135deg);margin-bottom:0}
+details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+.fbody{padding:0 18px 18px;border-top:1px solid var(--line)}
+.f{margin-top:14px}
+.f label{display:block;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px}
+.f input,.f select{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);
+  border-radius:6px;padding:11px 12px;font:500 16px var(--font);outline:none;min-height:44px}
+.f input:focus,.f select:focus{border-color:var(--green)}
+.f input::placeholder{color:#7C93AB}
+.f input[aria-invalid="true"],.f select[aria-invalid="true"]{border-color:var(--red)}
+.f .hint{display:block;font-size:12px;color:var(--muted);margin-top:5px}
+.err{font-size:12.5px;color:var(--red);margin:6px 0 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row2 .f{margin-top:14px}
+.acts{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.acts .btn{flex:1 1 auto}
+
+/* ---------- кнопки (як на лендінгу) ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,var(--green),var(--green2));color:#07240F;
+  font-family:var(--cond);font-weight:800;font-size:17px;letter-spacing:.08em;text-transform:uppercase;
+  padding:12px 22px;min-height:44px;border-radius:5px;border:0;cursor:pointer;text-decoration:none;
+  box-shadow:0 6px 18px rgba(58,222,92,.22);transition:.15s}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.btn-sm{padding:9px 14px;font-size:15px;box-shadow:none;min-height:40px}
+.btn-o{background:none;border:1px solid var(--green);color:var(--green);box-shadow:none}
+.btn-o:hover{background:rgba(58,222,92,.1)}
+
+/* ---------- список ставок ---------- */
+.list-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.list-head span{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bet{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:14px 16px;margin-bottom:10px}
+.bet-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.bet-date{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip{font-family:var(--cond);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 9px;border-radius:4px;border:1px solid;white-space:nowrap}
+.st-pending{color:var(--amber);border-color:rgba(245,185,61,.4);background:rgba(245,185,61,.1)}
+.st-won{color:var(--green);border-color:rgba(58,222,92,.4);background:rgba(58,222,92,.1)}
+.st-lost{color:var(--red);border-color:rgba(255,95,95,.4);background:rgba(255,95,95,.1)}
+.st-void{color:var(--muted);border-color:var(--line);background:rgba(147,168,190,.08)}
+.bet h3{font-size:16px;font-weight:700;margin-bottom:2px}
+.bet-market{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.nums{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:10px 0 0;border-top:1px solid #24374E}
+.nums>div{display:flex;flex-direction:column}
+.nums dt{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.nums dd{margin:0;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.pos{color:var(--green)} .neg{color:var(--red)}
+.closerow{display:flex;gap:8px;align-items:flex-end;margin-top:12px;
+  background:rgba(245,185,61,.07);border:1px solid rgba(245,185,61,.28);border-radius:6px;padding:10px}
+.closerow .f{flex:1;margin:0}
+.closerow label{color:var(--amber)}
+.closerow input{background:var(--panel);min-height:40px;padding:9px 10px}
+.bet-acts{display:flex;gap:16px;margin-top:12px}
+.lnk{background:none;border:0;padding:8px 0;cursor:pointer;font:600 13.5px var(--font);
+  color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.lnk:hover{color:var(--text)}
+.lnk-del:hover{color:var(--red)}
+.lnk:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:3px}
+
+/* ---------- дані ---------- */
+.data-card{padding:16px 18px}
+.data-card p{font-size:13px;color:var(--muted)}
+.data-btns{display:flex;gap:10px;flex-wrap:wrap}
+.data-btns .btn{flex:1 1 0;min-width:0;padding:9px 8px;white-space:nowrap}
+.msg{margin:12px 0 0;font-size:13px;border-radius:6px;padding:10px 12px}
+.msg.ok{color:var(--green);background:rgba(58,222,92,.1);border:1px solid rgba(58,222,92,.3)}
+.msg.bad{color:var(--red);background:rgba(255,95,95,.1);border:1px solid rgba(255,95,95,.3)}
+
+/* ---------- підвал ---------- */
+.tfoot{border-top:1px solid var(--line);padding-top:16px;margin-top:4px;
+  font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
+
+@media(min-width:520px){
+  .hm-v{font-size:76px}
+  .tiles{grid-template-columns:repeat(4,1fr)}
+  .tile b{font-size:26px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="thead">
+    <span class="logo">ROKKI<i>.</i></span>
+    <h1>Трекер ставок</h1>
+    <a class="back" href="/">← на сайт</a>
+  </header>
+
+  <!-- ============ СТАТИСТИКА ============ -->
+  <section class="stats" id="stats" aria-labelledby="stats-h" hidden>
+    <h2 id="stats-h" class="sr-only">Статистика</h2>
+
+    <div class="hm" id="hm">
+      <div class="hm-l">Середній CLV</div>
+      <div class="hm-v" id="s-clv">—</div>
+      <p class="hm-n" id="s-clv-note"></p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><b id="s-clvpos">—</b><span>Ставок із +CLV</span></div>
+      <div class="tile"><b id="s-profit">—</b><span>Прибуток</span></div>
+      <div class="tile"><b id="s-roi">—</b><span>ROI</span></div>
+      <div class="tile"><b id="s-count">0</b><span>Ставок</span></div>
+    </div>
+
+    <p class="pending" id="s-pending" hidden></p>
+  </section>
+
+  <!-- ============ ПОРОЖНІЙ СТАН ============ -->
+  <section class="empty" id="empty" hidden>
+    <h2>Навіщо це</h2>
+    <p><b>CLV</b> — різниця між коефіцієнтом, який ви взяли, і коефіцієнтом на той самий
+       результат перед стартом матчу. Якщо ви регулярно берете вищий коефіцієнт, ніж
+       закриваючий, ви знаходите помилки в лінії раніше за ринок.</p>
+    <p>Прибуток стабілізується лише через сотні ставок, а стабільно плюсовий CLV видно вже
+       на кількох десятках — тому це головна цифра на цій сторінці. Внесіть першу ставку.</p>
+  </section>
+
+  <!-- ============ ФОРМА ============ -->
+  <details class="card" id="formBox" open>
+    <summary><span id="formTitle">Додати ставку</span></summary>
+    <div class="fbody">
+      <form id="betForm" novalidate>
+
+        <div class="f">
+          <label for="f-date">Дата</label>
+          <input type="date" id="f-date" required>
+          <p class="err" id="e-date" hidden></p>
+        </div>
+
+        <div class="f">
+          <label for="f-event">Подія</label>
+          <input type="text" id="f-event" placeholder="Вест Гем — Вулвергемптон" autocomplete="off" required>
+          <p class="err" id="e-event" hidden></p>
+        </div>
+
+        <div class="f">
+          <label for="f-market">Ринок / вибір</label>
+          <input type="text" id="f-market" placeholder="тотал більше 2.5" autocomplete="off">
+        </div>
+
+        <div class="row2">
+          <div class="f">
+            <label for="f-odds">Коефіцієнт</label>
+            <input type="number" id="f-odds" step="0.01" min="1.02" inputmode="decimal" placeholder="2.10" required>
+          </div>
+          <div class="f">
+            <label for="f-stake">Сума, ₴</label>
+            <input type="number" id="f-stake" step="0.01" min="0" inputmode="decimal" placeholder="100" required>
+          </div>
+        </div>
+        <p class="err" id="e-odds" hidden></p>
+        <p class="err" id="e-stake" hidden></p>
+
+        <div class="row2">
+          <div class="f">
+            <label for="f-close">Закриваючий</label>
+            <input type="number" id="f-close" step="0.01" min="1.02" inputmode="decimal" placeholder="1.95">
+            <span class="hint">Коефіцієнт перед стартом матчу. Необов'язково — можна внести пізніше.</span>
+          </div>
+          <div class="f">
+            <label for="f-status">Результат</label>
+            <select id="f-status">
+              <option value="pending">Не зіграно</option>
+              <option value="won">Виграш</option>
+              <option value="lost">Програш</option>
+              <option value="void">Повернення</option>
+            </select>
+          </div>
+        </div>
+        <p class="err" id="e-close" hidden></p>
+
+        <div class="acts">
+          <button type="submit" class="btn" id="btnSubmit">Додати ставку</button>
+          <button type="button" class="btn btn-o" id="btnCancel" hidden>Скасувати</button>
+        </div>
+
+      </form>
+    </div>
+  </details>
+
+  <!-- ============ СПИСОК ============ -->
+  <section id="listSec" hidden>
+    <div class="list-head">
+      <h2 class="h2">Мої ставки</h2>
+      <span id="listCount"></span>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <!-- ============ ДАНІ ============ -->
+  <section class="card data-card">
+    <h2 class="h2" style="margin-bottom:10px">Дані</h2>
+    <p>Ставки зберігаються лише в цьому браузері й нікуди не передаються. Чистка кешу,
+       режим інкогніто або перехід на інший телефон їх зітруть — час від часу вивантажуйте
+       історію у файл.</p>
+    <div class="data-btns">
+      <button class="btn btn-o btn-sm" id="btnExport" type="button">Експорт JSON</button>
+      <button class="btn btn-o btn-sm" id="btnImport" type="button">Імпорт JSON</button>
+      <input type="file" id="fileInput" accept="application/json,.json" hidden>
+    </div>
+    <p class="msg" id="dataMsg" role="status" hidden></p>
+  </section>
+
+  <footer class="tfoot">18+. Інструмент для власного обліку, не заклик до ставок.</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   ТРЕКЕР СТАВОК — CLV
+   Чистий JS, без залежностей. Дані — у localStorage.
+   ============================================================ */
+
+const CURRENCY = '₴';
+
+const STATUS = {
+  pending: {label:'не зіграно', cls:'st-pending'},
+  won:     {label:'виграш',     cls:'st-won'},
+  lost:    {label:'програш',    cls:'st-lost'},
+  void:    {label:'повернення', cls:'st-void'}
+};
+
+/* ---------- дрібні утиліти ---------- */
+function uid(){
+  return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+}
+function todayISO(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function plural(n, one, few, many){
+  const a = n % 10, b = n % 100;
+  if(a === 1 && b !== 11) return one;
+  if(a >= 2 && a <= 4 && (b < 10 || b >= 20)) return few;
+  return many;
+}
+
+/* ---------- форматування ---------- */
+const nf = (min,max) => new Intl.NumberFormat('uk-UA',
+  {minimumFractionDigits:min, maximumFractionDigits:max});
+function fmtOdds(v){ return nf(2,2).format(v); }
+function fmtMoney(v){ return nf(0,2).format(v) + ' ' + CURRENCY; }
+function fmtMoneySigned(v){ return (v > 0 ? '+' : '') + fmtMoney(v); }
+function fmtPct(v){ return nf(0,1).format(v) + '%'; }
+function fmtPctSigned(v){ return (v > 0 ? '+' : '') + nf(1,1).format(v) + '%'; }
+function fmtDate(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? m[3] + '.' + m[2] + '.' + m[1] : (iso || '');
+}
+function signCls(v){ return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
+
+/* ============================================================
+   РОЗРАХУНКИ — чисті функції, без DOM
+   ============================================================ */
+
+/* Повернення на ставку. pending → null (у підрахунках не бере участі). */
+function betReturn(bet){
+  const stake = Number(bet.stake);
+  const odds  = Number(bet.oddsTaken);
+  switch(bet.status){
+    case 'won':  return stake * odds;
+    case 'lost': return 0;
+    case 'void': return stake;
+    default:     return null;
+  }
+}
+
+/* Прибуток по ставці = повернення − сума ставки. pending → null. */
+function betProfit(bet){
+  const r = betReturn(bet);
+  return r === null ? null : r - Number(bet.stake);
+}
+
+/* CLV однієї ставки у відсотках. Без закриваючого коефіцієнта → null. */
+function betCLV(bet){
+  const c = Number(bet.closingOdds);
+  if(bet.closingOdds == null || bet.closingOdds === '' || !isFinite(c) || c <= 1) return null;
+  return (Number(bet.oddsTaken) / c - 1) * 100;
+}
+
+/* Зведення по всьому списку. */
+function summarize(bets){
+  let settledCount = 0, pendingCount = 0, staked = 0, returned = 0, wins = 0;
+  let clvCount = 0, clvSum = 0, clvPositive = 0;
+
+  for(const b of bets){
+    const p = betProfit(b);
+    if(p === null){
+      pendingCount++;
+    }else{
+      settledCount++;
+      staked   += Number(b.stake);
+      returned += betReturn(b);
+      if(b.status === 'won') wins++;
+    }
+    const clv = betCLV(b);
+    if(clv !== null){
+      clvCount++;
+      clvSum += clv;
+      if(clv > 0) clvPositive++;
+    }
+  }
+
+  const profit = returned - staked;
+  return {
+    count: bets.length,
+    settledCount, pendingCount, staked, returned, profit,
+    roi:      staked > 0 ? profit / staked * 100 : null,
+    winRate:  settledCount > 0 ? wins / settledCount * 100 : null,
+    clvCount,
+    clvAvg:           clvCount > 0 ? clvSum / clvCount : null,
+    clvPositiveShare: clvCount > 0 ? clvPositive / clvCount * 100 : null
+  };
+}
+
+/* Валідація введеного. Повертає {ok, errors}, нічого не змінює. */
+function validateBet(input){
+  const errors = {};
+
+  if(!input.date) errors.date = 'Вкажіть дату.';
+  if(!String(input.event || '').trim()) errors.event = 'Вкажіть подію.';
+
+  const odds = Number(input.oddsTaken);
+  if(input.oddsTaken === '' || input.oddsTaken == null || !isFinite(odds) || odds <= 1.01)
+    errors.oddsTaken = 'Коефіцієнт має бути більшим за 1.01.';
+
+  const stake = Number(input.stake);
+  if(input.stake === '' || input.stake == null || !isFinite(stake) || stake <= 0)
+    errors.stake = 'Сума ставки має бути додатною.';
+
+  if(input.closingOdds !== '' && input.closingOdds != null){
+    const c = Number(input.closingOdds);
+    if(!isFinite(c) || c <= 1.01)
+      errors.closingOdds = 'Закриваючий коефіцієнт має бути більшим за 1.01.';
+  }
+
+  if(!STATUS[input.status]) errors.status = 'Оберіть результат.';
+
+  return {ok: Object.keys(errors).length === 0, errors};
+}
+
+/* Приведення довільного запису до моделі ставки. Некоректний → null. */
+function normalizeBet(raw){
+  if(!raw || typeof raw !== 'object') return null;
+
+  const odds  = Number(raw.oddsTaken);
+  const stake = Number(raw.stake);
+  const event = String(raw.event || '').trim();
+  if(!event || !isFinite(odds) || odds <= 1.01 || !isFinite(stake) || stake <= 0) return null;
+
+  const close = Number(raw.closingOdds);
+  const hasClose = raw.closingOdds !== '' && raw.closingOdds != null
+                   && isFinite(close) && close > 1.01;
+
+  return {
+    id:          typeof raw.id === 'string' && raw.id ? raw.id : uid(),
+    date:        /^\d{4}-\d{2}-\d{2}$/.test(raw.date) ? raw.date : todayISO(),
+    event:       event.slice(0, 200),
+    market:      String(raw.market || '').trim().slice(0, 200),
+    oddsTaken:   odds,
+    stake:       stake,
+    closingOdds: hasClose ? close : null,
+    status:      STATUS[raw.status] ? raw.status : 'pending',
+    createdAt:   Number(raw.createdAt) || Date.now()
+  };
+}
+
+/* Порядок у списку: новіші зверху. */
+function sortBets(bets){
+  return bets.slice().sort((a,b) =>
+    (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+/* ============================================================
+   ШАР ЗБЕРІГАННЯ
+   Решта коду знає лише ці п'ять методів і нічого — про localStorage.
+   Щоб перейти на бекенд, достатньо підмінити цей об'єкт.
+   ============================================================ */
+const Store = (function(){
+  const KEY = 'rokki_tracker_v1';
+  const VERSION = 1;
+
+  function read(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return [];
+      const data = JSON.parse(raw);
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.bets) ? data.bets : []);
+      return list.map(normalizeBet).filter(Boolean);
+    }catch(e){
+      return [];
+    }
+  }
+
+  function write(bets){
+    try{
+      localStorage.setItem(KEY, JSON.stringify({v: VERSION, bets: bets}));
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  return {
+    list(){
+      return read();
+    },
+    save(bet){
+      const bets = read();
+      const i = bets.findIndex(b => b.id === bet.id);
+      if(i >= 0) bets[i] = bet; else bets.push(bet);
+      return write(bets) ? bet : null;
+    },
+    remove(id){
+      return write(read().filter(b => b.id !== id));
+    },
+    exportAll(){
+      return JSON.stringify({
+        v: VERSION,
+        exportedAt: new Date().toISOString(),
+        bets: read()
+      }, null, 2);
+    },
+    importAll(json){
+      let data;
+      try{
+        data = JSON.parse(json);
+      }catch(e){
+        return {ok:false, error:'Файл не є коректним JSON.'};
+      }
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.bets) ? data.bets : null);
+      if(!list) return {ok:false, error:'У файлі немає списку ставок.'};
+
+      const bets = list.map(normalizeBet).filter(Boolean);
+      if(!bets.length) return {ok:false, error:'У файлі не знайшлося жодної коректної ставки.'};
+      if(!write(bets)) return {ok:false, error:'Не вдалося записати дані в цей браузер.'};
+
+      return {ok:true, count: bets.length};
+    }
+  };
+})();
+
+/* ============================================================
+   ІНТЕРФЕЙС
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+const els = {
+  stats: $('stats'), hm: $('hm'), clv: $('s-clv'), clvNote: $('s-clv-note'),
+  clvPos: $('s-clvpos'), profit: $('s-profit'), roi: $('s-roi'), count: $('s-count'),
+  pending: $('s-pending'), empty: $('empty'),
+  formBox: $('formBox'), formTitle: $('formTitle'), form: $('betForm'),
+  btnSubmit: $('btnSubmit'), btnCancel: $('btnCancel'),
+  listSec: $('listSec'), list: $('list'), listCount: $('listCount'),
+  btnExport: $('btnExport'), btnImport: $('btnImport'),
+  fileInput: $('fileInput'), dataMsg: $('dataMsg')
+};
+
+const fields = {
+  date:        $('f-date'),
+  event:       $('f-event'),
+  market:      $('f-market'),
+  oddsTaken:   $('f-odds'),
+  stake:       $('f-stake'),
+  closingOdds: $('f-close'),
+  status:      $('f-status')
+};
+const errBoxes = {
+  date: $('e-date'), event: $('e-event'),
+  oddsTaken: $('e-odds'), stake: $('e-stake'), closingOdds: $('e-close')
+};
+
+let editingId = null;
+
+/* ---------- статистика ---------- */
+function renderStats(bets){
+  const s = summarize(bets);
+
+  if(s.count === 0){
+    els.stats.hidden = true;
+    els.empty.hidden = false;
+    return;
+  }
+  els.stats.hidden = false;
+  els.empty.hidden = true;
+
+  /* головна цифра — середній CLV */
+  if(s.clvAvg === null){
+    els.clv.textContent = '—';
+    els.clv.className = 'hm-v';
+    els.hm.className = 'hm';
+    els.clvNote.innerHTML = 'Жодної ставки із закриваючим коефіцієнтом. ' +
+      'Внесіть його — і з\'явиться головна метрика.';
+  }else{
+    els.clv.textContent = fmtPctSigned(s.clvAvg);
+    els.clv.className = 'hm-v ' + signCls(s.clvAvg);
+    els.hm.className = 'hm ' + signCls(s.clvAvg);
+    let note = 'По ' + s.clvCount + ' ' +
+      plural(s.clvCount, 'ставці', 'ставках', 'ставках') + ' із закриваючим коефіцієнтом';
+    if(s.clvCount < 10){
+      note += '<span class="hm-warn">Вибірка ще замала, щоб робити висновки.</span>';
+    }
+    els.clvNote.innerHTML = note;
+  }
+
+  /* частка ставок із додатним CLV */
+  if(s.clvPositiveShare === null){
+    els.clvPos.textContent = '—';
+    els.clvPos.className = '';
+  }else{
+    els.clvPos.textContent = fmtPct(s.clvPositiveShare);
+    els.clvPos.className = s.clvPositiveShare >= 50 ? 'pos' : '';
+  }
+
+  /* прибуток / ROI / кількість */
+  if(s.settledCount === 0){
+    els.profit.textContent = '—'; els.profit.className = '';
+    els.roi.textContent = '—';    els.roi.className = '';
+  }else{
+    els.profit.textContent = fmtMoneySigned(s.profit);
+    els.profit.className = signCls(s.profit);
+    els.roi.textContent = s.roi === null ? '—' : fmtPctSigned(s.roi);
+    els.roi.className = signCls(s.profit);
+  }
+  els.count.textContent = s.count;
+
+  if(s.pendingCount > 0){
+    els.pending.hidden = false;
+    els.pending.textContent = 'Ще не розіграно: ' + s.pendingCount + ' ' +
+      plural(s.pendingCount, 'ставка', 'ставки', 'ставок') + '. У прибуток і ROI ' +
+      plural(s.pendingCount, 'вона не входить', 'вони не входять', 'вони не входять') + '.';
+  }else{
+    els.pending.hidden = true;
+  }
+}
+
+/* ---------- список ---------- */
+function renderList(bets){
+  const sorted = sortBets(bets);
+
+  if(!sorted.length){
+    els.listSec.hidden = true;
+    els.list.innerHTML = '';
+    return;
+  }
+  els.listSec.hidden = false;
+  els.listCount.textContent = sorted.length + ' ' +
+    plural(sorted.length, 'запис', 'записи', 'записів');
+
+  els.list.innerHTML = sorted.map(betCard).join('');
+}
+
+function betCard(b){
+  const st   = STATUS[b.status];
+  const clv  = betCLV(b);
+  const prof = betProfit(b);
+
+  let nums = '<div><dt>Коеф.</dt><dd>' + fmtOdds(b.oddsTaken) + '</dd></div>' +
+             '<div><dt>Ставка</dt><dd>' + fmtMoney(b.stake) + '</dd></div>';
+
+  if(clv !== null){
+    nums += '<div><dt>Закр.</dt><dd>' + fmtOdds(b.closingOdds) + '</dd></div>' +
+            '<div><dt>CLV</dt><dd class="' + signCls(clv) + '">' + fmtPctSigned(clv) + '</dd></div>';
+  }
+  if(prof !== null){
+    nums += '<div><dt>Прибуток</dt><dd class="' + signCls(prof) + '">' +
+            fmtMoneySigned(prof) + '</dd></div>';
+  }
+
+  const closeRow = clv !== null ? '' :
+    '<div class="closerow">' +
+      '<div class="f">' +
+        '<label for="c-' + esc(b.id) + '">Внести закриваючий коеф.</label>' +
+        '<input type="number" id="c-' + esc(b.id) + '" step="0.01" min="1.02" ' +
+               'inputmode="decimal" placeholder="напр. 1.95" data-close="' + esc(b.id) + '">' +
+      '</div>' +
+      '<button class="btn btn-sm" type="button" data-act="setclose" data-id="' + esc(b.id) + '">OK</button>' +
+    '</div>';
+
+  return '<article class="bet" data-id="' + esc(b.id) + '">' +
+      '<div class="bet-top">' +
+        '<span class="bet-date">' + fmtDate(b.date) + '</span>' +
+        '<span class="chip ' + st.cls + '">' + st.label + '</span>' +
+      '</div>' +
+      '<h3>' + esc(b.event) + '</h3>' +
+      (b.market ? '<p class="bet-market">' + esc(b.market) + '</p>' : '') +
+      '<dl class="nums">' + nums + '</dl>' +
+      closeRow +
+      '<div class="bet-acts">' +
+        '<button class="lnk" type="button" data-act="edit" data-id="' + esc(b.id) + '">Редагувати</button>' +
+        '<button class="lnk lnk-del" type="button" data-act="del" data-id="' + esc(b.id) + '">Видалити</button>' +
+      '</div>' +
+    '</article>';
+}
+
+function render(){
+  const bets = Store.list();
+  renderStats(bets);
+  renderList(bets);
+}
+
+/* ---------- форма ---------- */
+function clearErrors(){
+  for(const k in errBoxes){
+    errBoxes[k].hidden = true;
+    errBoxes[k].textContent = '';
+    if(fields[k]) fields[k].removeAttribute('aria-invalid');
+  }
+}
+
+function showErrors(errors){
+  let first = null;
+  for(const k in errors){
+    if(errBoxes[k]){
+      errBoxes[k].textContent = errors[k];
+      errBoxes[k].hidden = false;
+    }
+    if(fields[k]){
+      fields[k].setAttribute('aria-invalid','true');
+      if(!first) first = fields[k];
+    }
+  }
+  if(first) first.focus();
+}
+
+function resetForm(){
+  editingId = null;
+  els.form.reset();
+  fields.date.value = todayISO();
+  fields.status.value = 'pending';
+  clearErrors();
+  els.formTitle.textContent = 'Додати ставку';
+  els.btnSubmit.textContent = 'Додати ставку';
+  els.btnCancel.hidden = true;
+}
+
+function startEdit(id){
+  const bet = Store.list().find(b => b.id === id);
+  if(!bet) return;
+
+  editingId = id;
+  fields.date.value        = bet.date;
+  fields.event.value       = bet.event;
+  fields.market.value      = bet.market;
+  fields.oddsTaken.value   = bet.oddsTaken;
+  fields.stake.value       = bet.stake;
+  fields.closingOdds.value = bet.closingOdds == null ? '' : bet.closingOdds;
+  fields.status.value      = bet.status;
+
+  clearErrors();
+  els.formTitle.textContent = 'Редагувати ставку';
+  els.btnSubmit.textContent = 'Зберегти';
+  els.btnCancel.hidden = false;
+  els.formBox.open = true;
+  els.formBox.scrollIntoView({behavior:'smooth', block:'start'});
+  fields.event.focus();
+}
+
+els.form.addEventListener('submit', e => {
+  e.preventDefault();
+  clearErrors();
+
+  const input = {
+    date:        fields.date.value,
+    event:       fields.event.value,
+    market:      fields.market.value,
+    oddsTaken:   fields.oddsTaken.value,
+    stake:       fields.stake.value,
+    closingOdds: fields.closingOdds.value,
+    status:      fields.status.value
+  };
+
+  const v = validateBet(input);
+  if(!v.ok){ showErrors(v.errors); return; }
+
+  const existing = editingId ? Store.list().find(b => b.id === editingId) : null;
+  const bet = normalizeBet(Object.assign({}, input, {
+    id:        editingId || uid(),
+    createdAt: existing ? existing.createdAt : Date.now()
+  }));
+
+  if(!Store.save(bet)){
+    showDataMsg('Не вдалося зберегти — браузер блокує локальне сховище.', false);
+    return;
+  }
+
+  resetForm();
+  render();
+});
+
+els.btnCancel.addEventListener('click', () => { resetForm(); });
+
+/* ---------- дії в картках ---------- */
+els.list.addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+
+  if(btn.dataset.act === 'edit'){
+    startEdit(id);
+    return;
+  }
+
+  if(btn.dataset.act === 'del'){
+    const bet = Store.list().find(b => b.id === id);
+    if(!bet) return;
+    if(!confirm('Видалити ставку «' + bet.event + '» від ' + fmtDate(bet.date) + '?')) return;
+    if(editingId === id) resetForm();
+    Store.remove(id);
+    render();
+    return;
+  }
+
+  if(btn.dataset.act === 'setclose'){
+    const input = els.list.querySelector('[data-close="' + id + '"]');
+    const bet = Store.list().find(b => b.id === id);
+    if(!input || !bet) return;
+
+    const v = validateBet(Object.assign({}, bet, {closingOdds: input.value}));
+    if(input.value === '' || v.errors.closingOdds){
+      input.setAttribute('aria-invalid','true');
+      input.focus();
+      return;
+    }
+    bet.closingOdds = Number(input.value);
+    Store.save(bet);
+    render();
+  }
+});
+
+/* ---------- експорт / імпорт ---------- */
+function showDataMsg(text, ok){
+  els.dataMsg.textContent = text;
+  els.dataMsg.className = 'msg ' + (ok ? 'ok' : 'bad');
+  els.dataMsg.hidden = false;
+}
+
+els.btnExport.addEventListener('click', () => {
+  const bets = Store.list();
+  if(!bets.length){
+    showDataMsg('Поки нічого вивантажувати — список порожній.', false);
+    return;
+  }
+  const blob = new Blob([Store.exportAll()], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'rokki-tracker-' + todayISO() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showDataMsg('Вивантажено ' + bets.length + ' ' +
+    plural(bets.length, 'ставку', 'ставки', 'ставок') + '.', true);
+});
+
+els.btnImport.addEventListener('click', () => { els.fileInput.click(); });
+
+els.fileInput.addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const current = Store.list().length;
+    if(current > 0 && !confirm(
+        'Імпорт замінить поточні дані (' + current + ' ' +
+        plural(current, 'запис', 'записи', 'записів') + '). Продовжити?')){
+      els.fileInput.value = '';
+      return;
+    }
+    const res = Store.importAll(String(reader.result));
+    if(res.ok){
+      resetForm();
+      render();
+      showDataMsg('Завантажено ' + res.count + ' ' +
+        plural(res.count, 'ставку', 'ставки', 'ставок') + '.', true);
+    }else{
+      showDataMsg(res.error, false);
+    }
+    els.fileInput.value = '';
+  };
+  reader.onerror = () => {
+    showDataMsg('Не вдалося прочитати файл.', false);
+    els.fileInput.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* ---------- старт ---------- */
+resetForm();
+render();
+if(Store.list().length) els.formBox.open = false;
+</script>
+
+</body>
+</html>
