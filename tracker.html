@@ -69,6 +69,17 @@ a{color:inherit}
   text-transform:uppercase;color:var(--muted);margin-top:5px}
 .pending{font-size:12.5px;color:var(--muted);margin:10px 0 0;text-align:center}
 
+/* ---------- калібрування ---------- */
+.calib{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:14px 16px;margin-top:10px}
+.calib h3{font-family:var(--cond);font-size:15px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.calib .cline{display:flex;justify-content:space-between;gap:12px;font-size:14px;
+  font-variant-numeric:tabular-nums;padding:3px 0}
+.calib .cline span:first-child{color:var(--muted)}
+.calib .cnote{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.45}
+.calib .cnote.warn{color:var(--amber)}
+
 /* ---------- порожній стан ---------- */
 .empty{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
   padding:20px 18px;margin-bottom:22px}
@@ -135,6 +146,8 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
 .st-lost{color:var(--red);border-color:rgba(255,95,95,.4);background:rgba(255,95,95,.1)}
 .st-void{color:var(--muted);border-color:var(--line);background:rgba(147,168,190,.08)}
 .bet h3{font-size:16px;font-weight:700;margin-bottom:2px}
+.bet-league{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 2px}
 .bet-market{font-size:13.5px;color:var(--muted);margin:0 0 10px}
 .nums{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:10px 0 0;border-top:1px solid #24374E}
 .nums>div{display:flex;flex-direction:column}
@@ -200,6 +213,14 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
       <div class="tile"><b id="s-count">0</b><span>Ставок</span></div>
     </div>
 
+    <div class="calib" id="calib" hidden>
+      <h3>Калібрування прогнозу</h3>
+      <div class="cline"><span>Моя середня оцінка</span><b id="c-mine">—</b></div>
+      <div class="cline"><span>Фактично зайшло</span><b id="c-real">—</b></div>
+      <div class="cline"><span>Розбіжність</span><b id="c-diff">—</b></div>
+      <p class="cnote" id="c-note"></p>
+    </div>
+
     <p class="pending" id="s-pending" hidden></p>
   </section>
 
@@ -209,6 +230,8 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
     <p><b>CLV</b> — різниця між коефіцієнтом, який ви взяли, і коефіцієнтом на той самий
        результат перед стартом матчу. Якщо ви регулярно берете вищий коефіцієнт, ніж
        закриваючий, ви знаходите помилки в лінії раніше за ринок.</p>
+    <p><b>Калібрування</b> — чи збігається ваша оцінка ймовірності з тим, що сталося
+       насправді. Для цього заповнюйте поле «Моя оцінка».</p>
     <p>Прибуток стабілізується лише через сотні ставок, а стабільно плюсовий CLV видно вже
        на кількох десятках — тому це головна цифра на цій сторінці. Внесіть першу ставку.</p>
   </section>
@@ -219,11 +242,33 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
     <div class="fbody">
       <form id="betForm" novalidate>
 
-        <div class="f">
-          <label for="f-date">Дата</label>
-          <input type="date" id="f-date" required>
-          <p class="err" id="e-date" hidden></p>
+        <div class="row2">
+          <div class="f">
+            <label for="f-date">Дата</label>
+            <input type="date" id="f-date" required>
+          </div>
+          <div class="f">
+            <label for="f-league">Ліга</label>
+            <input type="text" id="f-league" list="leagues" placeholder="АПЛ" autocomplete="off">
+            <datalist id="leagues">
+              <option value="АПЛ"></option>
+              <option value="Чемпіоншип"></option>
+              <option value="Ла Ліга"></option>
+              <option value="Сегунда"></option>
+              <option value="Серія A"></option>
+              <option value="Серія B"></option>
+              <option value="Бундесліга"></option>
+              <option value="Бундесліга 2"></option>
+              <option value="Ліга 1"></option>
+              <option value="Ередивізі"></option>
+              <option value="УПЛ"></option>
+              <option value="Ліга чемпіонів"></option>
+              <option value="Ліга Європи"></option>
+              <option value="Ліга конференцій"></option>
+            </datalist>
+          </div>
         </div>
+        <p class="err" id="e-date" hidden></p>
 
         <div class="f">
           <label for="f-event">Подія</label>
@@ -233,7 +278,29 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
 
         <div class="f">
           <label for="f-market">Ринок / вибір</label>
-          <input type="text" id="f-market" placeholder="тотал більше 2.5" autocomplete="off">
+          <select id="f-market">
+            <option value="ТБ2.5 + ОЗ">ТБ 2.5 + обидві заб'ють</option>
+            <option value="ТБ2.5">ТБ 2.5</option>
+            <option value="ТМ2.5">ТМ 2.5</option>
+            <option value="ТБ3.5">ТБ 3.5</option>
+            <option value="ТМ3.5">ТМ 3.5</option>
+            <option value="ОЗ">Обидві заб'ють</option>
+            <option value="ОЗ ні">Обидві заб'ють — ні</option>
+            <option value="П1">П1</option>
+            <option value="Х">Нічия</option>
+            <option value="П2">П2</option>
+            <option value="1Х">1Х</option>
+            <option value="Х2">Х2</option>
+            <option value="12">12</option>
+            <option value="Фора">Фора</option>
+            <option value="Інше">Інше…</option>
+          </select>
+        </div>
+
+        <div class="f" id="marketNoteBox" hidden>
+          <label for="f-marketnote">Уточнення</label>
+          <input type="text" id="f-marketnote" placeholder="напр. фора 1 (0)" autocomplete="off">
+          <span class="hint">Що саме за ринок — для фори чи нестандартного вибору.</span>
         </div>
 
         <div class="row2">
@@ -248,6 +315,14 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
         </div>
         <p class="err" id="e-odds" hidden></p>
         <p class="err" id="e-stake" hidden></p>
+
+        <div class="f">
+          <label for="f-prob">Моя оцінка ймовірності, %</label>
+          <input type="number" id="f-prob" step="1" min="1" max="99" inputmode="numeric" placeholder="55">
+          <span class="hint">Наскільки ви самі вірите в цей результат. Без цього поля
+            калібрування не рахується.</span>
+          <p class="err" id="e-myProb" hidden></p>
+        </div>
 
         <div class="row2">
           <div class="f">
@@ -288,9 +363,9 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
   <!-- ============ ДАНІ ============ -->
   <section class="card data-card">
     <h2 class="h2" style="margin-bottom:10px">Дані</h2>
-    <p>Ставки зберігаються лише в цьому браузері й нікуди не передаються. Чистка кешу,
-       режим інкогніто або перехід на інший телефон їх зітруть — час від часу вивантажуйте
-       історію у файл.</p>
+    <p>Ставки зберігаються лише в цьому браузері й на цьому домені та нікуди не передаються.
+       Чистка кешу, режим інкогніто, інша адреса сайту або інший телефон покажуть порожній
+       список — час від часу вивантажуйте історію у файл.</p>
     <div class="data-btns">
       <button class="btn btn-o btn-sm" id="btnExport" type="button">Експорт JSON</button>
       <button class="btn btn-o btn-sm" id="btnImport" type="button">Імпорт JSON</button>
@@ -305,7 +380,7 @@ details.card>summary:focus-visible{outline:2px solid var(--green);outline-offset
 
 <script>
 /* ============================================================
-   ТРЕКЕР СТАВОК — CLV
+   ТРЕКЕР СТАВОК — CLV + калібрування
    Чистий JS, без залежностей. Дані — у localStorage.
    ============================================================ */
 
@@ -317,6 +392,10 @@ const STATUS = {
   lost:    {label:'програш',    cls:'st-lost'},
   void:    {label:'повернення', cls:'st-void'}
 };
+
+/* Канонічний список ринків. Порядок = порядок у випадайці. */
+const MARKETS = ['ТБ2.5 + ОЗ','ТБ2.5','ТМ2.5','ТБ3.5','ТМ3.5','ОЗ','ОЗ ні',
+                 'П1','Х','П2','1Х','Х2','12','Фора','Інше'];
 
 /* ---------- дрібні утиліти ---------- */
 function uid(){
@@ -346,11 +425,49 @@ function fmtMoney(v){ return nf(0,2).format(v) + ' ' + CURRENCY; }
 function fmtMoneySigned(v){ return (v > 0 ? '+' : '') + fmtMoney(v); }
 function fmtPct(v){ return nf(0,1).format(v) + '%'; }
 function fmtPctSigned(v){ return (v > 0 ? '+' : '') + nf(1,1).format(v) + '%'; }
+function fmtPp(v){ return (v > 0 ? '+' : '') + nf(1,1).format(v) + ' п.п.'; }
 function fmtDate(iso){
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
   return m ? m[3] + '.' + m[2] + '.' + m[1] : (iso || '');
 }
 function signCls(v){ return v > 0 ? 'pos' : (v < 0 ? 'neg' : ''); }
+
+/* ============================================================
+   РИНКИ — зведення старих вільних записів до канонічних
+   ============================================================ */
+function canonMarket(raw){
+  const orig = String(raw || '').trim();
+  if(!orig) return {market:'Інше', note:''};
+  if(MARKETS.indexOf(orig) >= 0) return {market:orig, note:''};
+
+  /* нормалізуємо написання: укр/рос літери, регістр, цифра 3 замість З */
+  let s = orig.toLowerCase()
+    .replace(/і/g,'и').replace(/ї/g,'и').replace(/є/g,'е').replace(/ё/g,'е')
+    .replace(/o3\b/g,'оз').replace(/о3/g,'оз')
+    .replace(/\s+/g,' ');
+
+  const both = /(^|[^a-zа-я])(оз|обз|обидв|обе заб|обидві заб)/.test(s);
+  const over = /(тб|тотал больш|тотал бил|т\s?2\.5 больш|over)/.test(s);
+  const under = /(тм|тотал мен|under)/.test(s);
+  const noBoth = /(оз\s*(нет|ни|ні)|обз\s*(нет|ні))/.test(s);
+
+  if(noBoth)               return {market:'ОЗ ні', note:''};
+  if(over && both)         return {market:'ТБ2.5 + ОЗ', note:''};
+  if(/3\.5/.test(s) && over)  return {market:'ТБ3.5', note:''};
+  if(/3\.5/.test(s) && under) return {market:'ТМ3.5', note:''};
+  if(over)                 return {market:'ТБ2.5', note:''};
+  if(under)                return {market:'ТМ2.5', note:''};
+  if(both)                 return {market:'ОЗ', note:''};
+  if(/фора/.test(s))       return {market:'Фора', note:orig};
+  if(/^п\s?1|^1\b/.test(s))return {market:'П1', note:''};
+  if(/^п\s?2|^2\b/.test(s))return {market:'П2', note:''};
+  if(/^(х|x)\s?2/.test(s)) return {market:'Х2', note:''};
+  if(/^1\s?(х|x)/.test(s)) return {market:'1Х', note:''};
+  if(/^(х|x)$/.test(s))    return {market:'Х', note:''};
+  if(/^12$/.test(s))       return {market:'12', note:''};
+
+  return {market:'Інше', note:orig};
+}
 
 /* ============================================================
    РОЗРАХУНКИ — чисті функції, без DOM
@@ -381,10 +498,18 @@ function betCLV(bet){
   return (Number(bet.oddsTaken) / c - 1) * 100;
 }
 
+/* Перевага: моя оцінка мінус ймовірність, закладена у взятий коефіцієнт. */
+function betEdge(bet){
+  const p = Number(bet.myProb);
+  if(bet.myProb == null || !isFinite(p) || p <= 0) return null;
+  return p - 100 / Number(bet.oddsTaken);
+}
+
 /* Зведення по всьому списку. */
 function summarize(bets){
   let settledCount = 0, pendingCount = 0, staked = 0, returned = 0, wins = 0;
   let clvCount = 0, clvSum = 0, clvPositive = 0;
+  let probCount = 0, probSum = 0, probWins = 0;
 
   for(const b of bets){
     const p = betProfit(b);
@@ -395,6 +520,14 @@ function summarize(bets){
       staked   += Number(b.stake);
       returned += betReturn(b);
       if(b.status === 'won') wins++;
+
+      /* калібрування рахуємо лише по розіграних ставках з оцінкою.
+         Повернення не має результату «так/ні» — пропускаємо. */
+      if(b.myProb != null && b.status !== 'void'){
+        probCount++;
+        probSum += Number(b.myProb);
+        if(b.status === 'won') probWins++;
+      }
     }
     const clv = betCLV(b);
     if(clv !== null){
@@ -412,7 +545,10 @@ function summarize(bets){
     winRate:  settledCount > 0 ? wins / settledCount * 100 : null,
     clvCount,
     clvAvg:           clvCount > 0 ? clvSum / clvCount : null,
-    clvPositiveShare: clvCount > 0 ? clvPositive / clvCount * 100 : null
+    clvPositiveShare: clvCount > 0 ? clvPositive / clvCount * 100 : null,
+    probCount,
+    probAvg:  probCount > 0 ? probSum / probCount : null,
+    probReal: probCount > 0 ? probWins / probCount * 100 : null
   };
 }
 
@@ -437,6 +573,12 @@ function validateBet(input){
       errors.closingOdds = 'Закриваючий коефіцієнт має бути більшим за 1.01.';
   }
 
+  if(input.myProb !== '' && input.myProb != null){
+    const p = Number(input.myProb);
+    if(!isFinite(p) || p < 1 || p > 99)
+      errors.myProb = 'Оцінка має бути від 1 до 99 відсотків.';
+  }
+
   if(!STATUS[input.status]) errors.status = 'Оберіть результат.';
 
   return {ok: Object.keys(errors).length === 0, errors};
@@ -455,14 +597,26 @@ function normalizeBet(raw){
   const hasClose = raw.closingOdds !== '' && raw.closingOdds != null
                    && isFinite(close) && close > 1.01;
 
+  const prob = Number(raw.myProb);
+  const hasProb = raw.myProb !== '' && raw.myProb != null
+                  && isFinite(prob) && prob >= 1 && prob <= 99;
+
+  /* старі записи мали вільний текст у market — зводимо до списку,
+     а початковий текст зберігаємо в marketNote, щоб нічого не втратити */
+  const cm = canonMarket(raw.market);
+  const note = String(raw.marketNote || cm.note || '').trim();
+
   return {
     id:          typeof raw.id === 'string' && raw.id ? raw.id : uid(),
     date:        /^\d{4}-\d{2}-\d{2}$/.test(raw.date) ? raw.date : todayISO(),
+    league:      String(raw.league || '').trim().slice(0, 60),
     event:       event.slice(0, 200),
-    market:      String(raw.market || '').trim().slice(0, 200),
+    market:      cm.market,
+    marketNote:  note.slice(0, 200),
     oddsTaken:   odds,
     stake:       stake,
     closingOdds: hasClose ? close : null,
+    myProb:      hasProb ? Math.round(prob) : null,
     status:      STATUS[raw.status] ? raw.status : 'pending',
     createdAt:   Number(raw.createdAt) || Date.now()
   };
@@ -481,7 +635,7 @@ function sortBets(bets){
    ============================================================ */
 const Store = (function(){
   const KEY = 'rokki_tracker_v1';
-  const VERSION = 1;
+  const VERSION = 2;
 
   function read(){
     try{
@@ -552,7 +706,9 @@ const els = {
   stats: $('stats'), hm: $('hm'), clv: $('s-clv'), clvNote: $('s-clv-note'),
   clvPos: $('s-clvpos'), profit: $('s-profit'), roi: $('s-roi'), count: $('s-count'),
   pending: $('s-pending'), empty: $('empty'),
+  calib: $('calib'), cMine: $('c-mine'), cReal: $('c-real'), cDiff: $('c-diff'), cNote: $('c-note'),
   formBox: $('formBox'), formTitle: $('formTitle'), form: $('betForm'),
+  marketNoteBox: $('marketNoteBox'),
   btnSubmit: $('btnSubmit'), btnCancel: $('btnCancel'),
   listSec: $('listSec'), list: $('list'), listCount: $('listCount'),
   btnExport: $('btnExport'), btnImport: $('btnImport'),
@@ -561,19 +717,30 @@ const els = {
 
 const fields = {
   date:        $('f-date'),
+  league:      $('f-league'),
   event:       $('f-event'),
   market:      $('f-market'),
+  marketNote:  $('f-marketnote'),
   oddsTaken:   $('f-odds'),
   stake:       $('f-stake'),
+  myProb:      $('f-prob'),
   closingOdds: $('f-close'),
   status:      $('f-status')
 };
 const errBoxes = {
   date: $('e-date'), event: $('e-event'),
-  oddsTaken: $('e-odds'), stake: $('e-stake'), closingOdds: $('e-close')
+  oddsTaken: $('e-odds'), stake: $('e-stake'),
+  myProb: $('e-myProb'), closingOdds: $('e-close')
 };
 
 let editingId = null;
+
+/* «Уточнення» показуємо лише там, де воно має сенс */
+function syncMarketNote(){
+  const m = fields.market.value;
+  els.marketNoteBox.hidden = !(m === 'Інше' || m === 'Фора');
+}
+fields.market.addEventListener('change', syncMarketNote);
 
 /* ---------- статистика ---------- */
 function renderStats(bets){
@@ -600,8 +767,9 @@ function renderStats(bets){
     els.hm.className = 'hm ' + signCls(s.clvAvg);
     let note = 'По ' + s.clvCount + ' ' +
       plural(s.clvCount, 'ставці', 'ставках', 'ставках') + ' із закриваючим коефіцієнтом';
-    if(s.clvCount < 10){
-      note += '<span class="hm-warn">Вибірка ще замала, щоб робити висновки.</span>';
+    if(s.clvCount < 50){
+      note += '<span class="hm-warn">Вибірка ще замала, щоб робити висновки — ' +
+              'CLV стає показовим приблизно з 50 ставок.</span>';
     }
     els.clvNote.innerHTML = note;
   }
@@ -627,6 +795,8 @@ function renderStats(bets){
   }
   els.count.textContent = s.count;
 
+  renderCalib(s);
+
   if(s.pendingCount > 0){
     els.pending.hidden = false;
     els.pending.textContent = 'Ще не розіграно: ' + s.pendingCount + ' ' +
@@ -635,6 +805,39 @@ function renderStats(bets){
   }else{
     els.pending.hidden = true;
   }
+}
+
+/* ---------- калібрування ---------- */
+function renderCalib(s){
+  if(!s.probCount){
+    els.calib.hidden = true;
+    return;
+  }
+  els.calib.hidden = false;
+
+  const diff = s.probReal - s.probAvg;
+  els.cMine.textContent = fmtPct(s.probAvg);
+  els.cReal.textContent = fmtPct(s.probReal);
+  els.cDiff.textContent = fmtPp(diff);
+  els.cDiff.className = Math.abs(diff) <= 5 ? 'pos' : 'neg';
+
+  let note, warn = false;
+  if(s.probCount < 30){
+    note = 'Пораховано по ' + s.probCount + ' ' +
+      plural(s.probCount,'ставці','ставках','ставках') +
+      ' з оцінкою. Замало для висновків — орієнтир від 30, надійно від 100.';
+    warn = true;
+  }else if(diff < -5){
+    note = 'Ви систематично переоцінюєте свої вибори: реальність гірша за оцінку ' +
+           'приблизно на ' + nf(0,0).format(Math.abs(diff)) + ' п.п. Оцінки варто знижувати.';
+  }else if(diff > 5){
+    note = 'Ви систематично недооцінюєте свої вибори: заходить частіше, ніж ви кажете, ' +
+           'приблизно на ' + nf(0,0).format(diff) + ' п.п.';
+  }else{
+    note = 'Оцінки збігаються з реальністю в межах похибки. Це і є добре калібрування.';
+  }
+  els.cNote.textContent = note;
+  els.cNote.className = 'cnote' + (warn ? ' warn' : '');
 }
 
 /* ---------- список ---------- */
@@ -657,10 +860,18 @@ function betCard(b){
   const st   = STATUS[b.status];
   const clv  = betCLV(b);
   const prof = betProfit(b);
+  const edge = betEdge(b);
 
   let nums = '<div><dt>Коеф.</dt><dd>' + fmtOdds(b.oddsTaken) + '</dd></div>' +
              '<div><dt>Ставка</dt><dd>' + fmtMoney(b.stake) + '</dd></div>';
 
+  if(b.myProb != null){
+    nums += '<div><dt>Моя оцінка</dt><dd>' + b.myProb + '%</dd></div>';
+    if(edge !== null){
+      nums += '<div><dt>Перевага</dt><dd class="' + signCls(edge) + '">' +
+              fmtPp(edge) + '</dd></div>';
+    }
+  }
   if(clv !== null){
     nums += '<div><dt>Закр.</dt><dd>' + fmtOdds(b.closingOdds) + '</dd></div>' +
             '<div><dt>CLV</dt><dd class="' + signCls(clv) + '">' + fmtPctSigned(clv) + '</dd></div>';
@@ -680,13 +891,16 @@ function betCard(b){
       '<button class="btn btn-sm" type="button" data-act="setclose" data-id="' + esc(b.id) + '">OK</button>' +
     '</div>';
 
+  const marketLine = b.marketNote ? b.market + ' · ' + b.marketNote : b.market;
+
   return '<article class="bet" data-id="' + esc(b.id) + '">' +
       '<div class="bet-top">' +
         '<span class="bet-date">' + fmtDate(b.date) + '</span>' +
         '<span class="chip ' + st.cls + '">' + st.label + '</span>' +
       '</div>' +
+      (b.league ? '<p class="bet-league">' + esc(b.league) + '</p>' : '') +
       '<h3>' + esc(b.event) + '</h3>' +
-      (b.market ? '<p class="bet-market">' + esc(b.market) + '</p>' : '') +
+      '<p class="bet-market">' + esc(marketLine) + '</p>' +
       '<dl class="nums">' + nums + '</dl>' +
       closeRow +
       '<div class="bet-acts">' +
@@ -731,6 +945,8 @@ function resetForm(){
   els.form.reset();
   fields.date.value = todayISO();
   fields.status.value = 'pending';
+  fields.market.value = MARKETS[0];
+  syncMarketNote();
   clearErrors();
   els.formTitle.textContent = 'Додати ставку';
   els.btnSubmit.textContent = 'Додати ставку';
@@ -743,13 +959,17 @@ function startEdit(id){
 
   editingId = id;
   fields.date.value        = bet.date;
+  fields.league.value      = bet.league || '';
   fields.event.value       = bet.event;
   fields.market.value      = bet.market;
+  fields.marketNote.value  = bet.marketNote || '';
   fields.oddsTaken.value   = bet.oddsTaken;
   fields.stake.value       = bet.stake;
+  fields.myProb.value      = bet.myProb == null ? '' : bet.myProb;
   fields.closingOdds.value = bet.closingOdds == null ? '' : bet.closingOdds;
   fields.status.value      = bet.status;
 
+  syncMarketNote();
   clearErrors();
   els.formTitle.textContent = 'Редагувати ставку';
   els.btnSubmit.textContent = 'Зберегти';
@@ -765,10 +985,13 @@ els.form.addEventListener('submit', e => {
 
   const input = {
     date:        fields.date.value,
+    league:      fields.league.value,
     event:       fields.event.value,
     market:      fields.market.value,
+    marketNote:  els.marketNoteBox.hidden ? '' : fields.marketNote.value,
     oddsTaken:   fields.oddsTaken.value,
     stake:       fields.stake.value,
+    myProb:      fields.myProb.value,
     closingOdds: fields.closingOdds.value,
     status:      fields.status.value
   };
